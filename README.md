@@ -43,7 +43,7 @@ A set of default alerts are built-in to this module with recommended defaults in
 
 ```hcl
 module "key_vault" {
-  source  = "AscentSoftware/key-vault/azurerm"
+  source  = "lestermarch/key-vault/azurerm"
   version = "1.0.0"
 
   location            = "uksouth"
@@ -59,7 +59,7 @@ module "key_vault" {
 
 ```hcl
 module "key_vault" {
-  source  = "AscentSoftware/key-vault/azurerm"
+  source  = "lestermarch/key-vault/azurerm"
   version = "1.0.0"
 
   location            = "uksouth"
@@ -151,7 +151,7 @@ module "key_vault" {
 
 ```hcl
 module "key_vault" {
-  source  = "AscentSoftware/key-vault/azurerm"
+  source  = "lestermarch/key-vault/azurerm"
   version = "1.0.0"
 
   location            = "uksouth"
@@ -175,7 +175,7 @@ To access the Key Vault data plane over private endpoint, the `private_endpoints
 
 ```hcl
 module "key_vault" {
-  source  = "AscentSoftware/key-vault/azurerm"
+  source  = "lestermarch/key-vault/azurerm"
   version = "1.0.0"
 
   location            = "uksouth"
@@ -201,7 +201,7 @@ To provide role-based access to the Key Vault control and data planes, the `role
 
 ```hcl
 module "key_vault" {
-  source  = "AscentSoftware/key-vault/azurerm"
+  source  = "lestermarch/key-vault/azurerm"
   version = "1.0.0"
 
   location            = "uksouth"
