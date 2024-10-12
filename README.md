@@ -35,6 +35,30 @@ This module forces the enablement of purge protection and provides no interface 
 
 This section provides some examples of customizing the default module configuration.
 
+### Diagnostic Logging
+
+Diagnostic logging is supported using Log Analytics as the target log store.
+
+#### Enable Diagnostics to Log Analytics
+
+```hcl
+module "key_vault" {
+  source  = "lestermarch/key-vault/azurerm"
+  version = "2024-10-12"
+
+  location            = "uksouth"
+  resource_group_name = "rg-example"
+
+  diagnostics = {
+    key_vault = {
+      default = {
+        log_analytics_workspace_id = "/subscriptions/.../providers/Microsoft.OperationalInsights/workspaces/log-example"
+      }
+    }
+  }
+}
+```
+
 ### Public Access
 
 To access the Key Vault data plane over public endpoint the `enable_public_access` should be changed to `true`. However, in this configuration it is highly recommended to also use the public endpoint firewall or service endpoints to restrict access to trusted sources only. These can be enabled through the `network_access` variable.
@@ -77,6 +101,29 @@ module "key_vault" {
   }
 }
 ```
+
+> [!Note]
+> In this scenario the `ExampleSubnet` would need to be configured with a service endpoint for `Microsoft.KeyVault`.
+
+#### Enable Public Endpoint without Restriction
+
+```hcl
+module "key_vault" {
+  source  = "AscentSoftware/key-vault/azurerm"
+  version = "1.0.0"
+
+  location            = "uksouth"
+  resource_group_name = "rg-example"
+
+  enable_public_access = true
+  network_access = {
+    default_action = "Allow"
+  }
+}
+```
+
+> [!Warning]
+> While still protected through identity, enabling public access without restriction is not a recommended configuration.
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
