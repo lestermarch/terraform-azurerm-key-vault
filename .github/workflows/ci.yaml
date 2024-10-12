@@ -67,7 +67,7 @@ jobs:
 
       # Validate Terraform documentation with terraform-docs
       - name: Terraform Docs
-        uses: terraform-docs/gh-actions@v1.2.2
+        uses: terraform-docs/gh-actions@v1.3.0
         with:
           config-file: ${{ env.TERRAFORM_DOCS_CONFIG_FILE_PATH }}
           git-commit-message: 'docs: terraform-docs automated update'
