@@ -94,6 +94,35 @@ variable "network_access" {
   })
 }
 
+variable "private_endpoint" {
+  default     = {}
+  description = <<-EOT
+  An object used to define private endpoints for resources, in the format:
+  ```
+  {
+    key_vault = {
+      vault = {
+        private_dns_zone_ids = [
+          "/subscriptions/.../providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.net"
+        ]
+        subnet_id = "/subscriptions/.../providers/Microsoft.Network/virtualNetworks/vnet-example/subnets/ExampleSubnet"
+      }
+    }
+  }
+  ```
+  EOT
+  type = object({
+    key_vault = optional(map(object({
+      private_dns_zone_ids   = list(string)
+      subnet_id              = string
+      endpoint_name          = optional(string)
+      network_interface_name = optional(string)
+      resource_group_name    = optional(string)
+      tags                   = optional(map(string))
+    })), {})
+  })
+}
+
 variable "resource_group_name" {
   description = "The resource group into which resources will be deployed."
   type        = string
