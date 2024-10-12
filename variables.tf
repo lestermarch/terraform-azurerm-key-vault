@@ -1,3 +1,98 @@
+variable "alert" {
+  default     = {}
+  description = <<-EOT
+  An object used to define alerts for resources, in the format:
+  ```
+  {
+    key_vault = {
+      availability = {
+        action_group_id     = "/subscriptions/.../resourceGroups/rg-example/providers/Microsoft.Insights/actionGroups/ag-example"
+        alert_name          = "kv-example-Availability"
+        enabled             = true
+        resource_group_name = "rg-alerts-example"
+        severity            = 3
+        threshold           = 95
+      }
+      saturation                    = { ... }
+      service_api_hit               = { ... }
+      service_api_latency           = { ... }
+      service_api_result_anomaly    = { ... }
+      service_api_result_rate_limit = { ... }
+    }
+  }
+  ```
+  The default action group for all alerts can be set using the `action_group_id` attribute.
+  Action groups defined per alert will override the default action group.
+  Either the default `action_group_id` or an `action_group_id` per alert must be provided.
+  EOT
+  type = object({
+    action_group_id = optional(string)
+    key_vault = optional(object({
+      availability = optional(object({
+        action_group_id     = optional(string, null)
+        alert_name          = optional(string)
+        enabled             = optional(bool, true)
+        resource_group_name = optional(string)
+        severity            = optional(number, 1)
+        tags                = optional(map(string))
+        threshold           = optional(number, 90)
+      }), {})
+      deleted = optional(object({
+        action_group_id     = optional(string, null)
+        alert_name          = optional(string)
+        enabled             = optional(bool, true)
+        resource_group_name = optional(string)
+        statuses            = optional(list(string), ["Succeeded"])
+        tags                = optional(map(string))
+      }), {})
+      saturation = optional(object({
+        action_group_id     = optional(string, null)
+        alert_name          = optional(string)
+        enabled             = optional(bool, true)
+        resource_group_name = optional(string)
+        severity            = optional(number, 3)
+        tags                = optional(map(string))
+        threshold           = optional(number, 75)
+      }), {})
+      service_api_hit = optional(object({
+        action_group_id     = optional(string, null)
+        alert_name          = optional(string)
+        enabled             = optional(bool, true)
+        resource_group_name = optional(string)
+        severity            = optional(number, 3)
+        tags                = optional(map(string))
+        threshold           = optional(number, 80)
+      }), {})
+      service_api_latency = optional(object({
+        action_group_id     = optional(string, null)
+        alert_name          = optional(string)
+        enabled             = optional(bool, true)
+        resource_group_name = optional(string)
+        severity            = optional(number, 3)
+        tags                = optional(map(string))
+        threshold           = optional(number, 1000)
+      }), {})
+      service_api_result_anomaly = optional(object({
+        action_group_id     = optional(string, null)
+        alert_name          = optional(string)
+        enabled             = optional(bool, true)
+        resource_group_name = optional(string)
+        severity            = optional(number, 3)
+        sensitivity         = optional(string, "Medium")
+        tags                = optional(map(string))
+      }), {})
+      service_api_result_rate_limit = optional(object({
+        action_group_id     = optional(string, null)
+        alert_name          = optional(string)
+        enabled             = optional(bool, true)
+        resource_group_name = optional(string)
+        severity            = optional(number, 3)
+        tags                = optional(map(string))
+      }), {})
+    }), {})
+  })
+}
+
 variable "delete_retention_days" {
   default     = 7
   description = "The number of days to retain soft-deleted keys, secrets, and certificates."
