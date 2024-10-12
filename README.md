@@ -35,6 +35,48 @@ This module forces the enablement of purge protection and provides no interface 
 
 This section provides some examples of customizing the default module configuration.
 
+### Alerts
+
+A set of default alerts are built-in to this module with recommended defaults in terms of severity and alert threshold. However, to enable alerts an action group ID must be provided either globally through the `action_group_id` variable, or on individual alerts for selective enablement.
+
+#### Enable All Alerts
+
+```hcl
+module "key_vault" {
+  source  = "AscentSoftware/key-vault/azurerm"
+  version = "1.0.0"
+
+  location            = "uksouth"
+  resource_group_name = "rg-example"
+
+  alert = {
+    action_group_id = "/subscriptions/.../resourceGroups/rg-example/providers/Microsoft.Insights/actionGroups/ag-example"
+  }
+}
+```
+
+#### Customize Alert Parameters
+
+```hcl
+module "key_vault" {
+  source  = "AscentSoftware/key-vault/azurerm"
+  version = "1.0.0"
+
+  location            = "uksouth"
+  resource_group_name = "rg-example"
+
+  alert = {
+    action_group_id = "/subscriptions/.../resourceGroups/rg-example/providers/Microsoft.Insights/actionGroups/ag-example"
+    key_vault = {
+      availability = {
+        severity  = 3
+        threshold = 80
+      }
+    }
+  }
+}
+```
+
 ### Diagnostic Logging
 
 Diagnostic logging is supported using Log Analytics as the target log store.
