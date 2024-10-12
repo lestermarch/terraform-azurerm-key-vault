@@ -125,6 +125,70 @@ module "key_vault" {
 > [!Warning]
 > While still protected through identity, enabling public access without restriction is not a recommended configuration.
 
+### Private Access
+
+To access the Key Vault data plane over private endpoint, the `private_endpoints` variable can be configured to provision a private endpoint to a specific subnet and register to an existing Azure Private DNS Zone. The public endpoint for the resource is disabled by default.
+
+#### Provision a Private Endpoint
+
+```hcl
+module "key_vault" {
+  source  = "AscentSoftware/key-vault/azurerm"
+  version = "1.0.0"
+
+  location            = "uksouth"
+  resource_group_name = "rg-example"
+
+  private_endpoints = {
+    key_vault = {
+      vault = {
+        private_dns_zone_ids = ["/subscriptions/.../providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.net"]
+        subnet_id            = "/subscriptions/.../providers/Microsoft.Network/virtualNetworks/vnet-example/subnets/ExampleSubnet"
+        subresource_names    = ["vault"]
+      }
+    }
+  }
+}
+```
+
+### Role Assignments
+
+To provide role-based access to the Key Vault control and data planes, the `role_assignments` variable can be configured with one or more role assignments linking an Entra ID group (default), user, or service principal to a particular role.
+
+#### Grant Access to Multiple Identities
+
+```hcl
+module "key_vault" {
+  source  = "AscentSoftware/key-vault/azurerm"
+  version = "1.0.0"
+
+  location            = "uksouth"
+  resource_group_name = "rg-example"
+
+  role_assignments = {
+    key_vault = {
+      example_group_key_vault_secrets_officer = {
+        description          = "Example group role assignment"
+        principal_id         = "00000000-0000-0000-0000-000000000001"
+        role_definition_name = "Key Vault Secrets Officer"
+      }
+      example_user_key_vault_administrator = {
+        description          = "Example user role assignment"
+        principal_id         = "00000000-0000-0000-0000-000000000001"
+        principal_type       = "User"
+        role_definition_name = "Key Vault Administrator"
+      }
+      example_service_principal_key_vault_secrets_user = {
+        description          = "Example service principal role assignment"
+        principal_id         = "00000000-0000-0000-0000-000000000002"
+        principal_type       = "ServicePrincipal"
+        role_definition_name = "Key Vault Secrets User"
+      }
+    }
+  }
+}
+```
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -151,6 +215,7 @@ No modules.
 |------|------|
 | [azurerm_key_vault.main](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault) | resource |
 | [azurerm_monitor_diagnostic_setting.key_vault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) | resource |
+| [azurerm_private_endpoint.key_vault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) | resource |
 | [azurerm_role_assignment.key_vault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
 | [random_integer.resource_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) | resource |
 | [random_pet.resource_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/pet) | resource |
@@ -168,6 +233,7 @@ No modules.
 | <a name="input_enable_for_template_deployment"></a> [enable\_for\_template\_deployment](#input\_enable\_for\_template\_deployment) | Determines if Azure Resource Manager can retrieve secrets from the key vault during template deployment. | `bool` | `false` | no |
 | <a name="input_enable_public_access"></a> [enable\_public\_access](#input\_enable\_public\_access) | Determines if public network access should be enabled. | `bool` | `false` | no |
 | <a name="input_network_access"></a> [network\_access](#input\_network\_access) | An object used to define network access to key vault, in the format:<pre>{<br/>  bypass         = "AzureServices"<br/>  default_action = "Deny"<br/>  ip_rules = [<br/>    "80.170.100.82/32",<br/>    "80.170.101.0/24"<br/>  ]<br/>  virtual_network_subnet_ids = [<br/>    "/subscriptions/.../providers/Microsoft.Network/virtualNetworks/vnet-example/subnets/ExampleSubnet"<br/>  ]<br/>}</pre>Subnets defined in `virtual_network_subnet_ids` should be configured with service endpoint for `Microsoft.KeyVault`. | <pre>object({<br/>    bypass                     = optional(string, "AzureServices")<br/>    default_action             = optional(string, "Deny")<br/>    ip_rules                   = optional(list(string))<br/>    virtual_network_subnet_ids = optional(list(string))<br/>  })</pre> | <pre>{<br/>  "bypass": "AzureServices",<br/>  "default_action": "Deny"<br/>}</pre> | no |
+| <a name="input_private_endpoint"></a> [private\_endpoint](#input\_private\_endpoint) | An object used to define private endpoints for resources, in the format:<pre>{<br/>  key_vault = {<br/>    vault = {<br/>      private_dns_zone_ids = [<br/>        "/subscriptions/.../providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.net"<br/>      ]<br/>      subnet_id = "/subscriptions/.../providers/Microsoft.Network/virtualNetworks/vnet-example/subnets/ExampleSubnet"<br/>    }<br/>  }<br/>}</pre> | <pre>object({<br/>    key_vault = optional(map(object({<br/>      private_dns_zone_ids   = list(string)<br/>      subnet_id              = string<br/>      endpoint_name          = optional(string)<br/>      network_interface_name = optional(string)<br/>      resource_group_name    = optional(string)<br/>      tags                   = optional(map(string))<br/>    })), {})<br/>  })</pre> | `{}` | no |
 | <a name="input_resource_name"></a> [resource\_name](#input\_resource\_name) | An object used to define explicit resource names, in the format:<pre>{<br/>  key_vault = "kv-example-123"<br/>}</pre>Resource names will be randomly generated if not provided. | <pre>object({<br/>    key_vault = optional(string, null)<br/>  })</pre> | `{}` | no |
 | <a name="input_resource_tags"></a> [resource\_tags](#input\_resource\_tags) | A map of key-value pairs to use as resource tags. | `map(string)` | `null` | no |
 | <a name="input_role_assignments"></a> [role\_assignments](#input\_role\_assignments) | An object used to define role assignments for resources, in the format:<pre>{<br/>  key_vault = {<br/>    service_principal_key_vault_administrator = {<br/>      principal_id                 = "0000000000-0000-0000-0000-000000000001"<br/>      principal_type               = "ServicePrincipal"<br/>      role_definition_name         = "Key Vault Administrator"<br/>      skip_service_principal_check = true<br/>    }<br/>  }<br/>}</pre> | <pre>object({<br/>    key_vault = optional(map(object({<br/>      principal_id                 = string<br/>      role_definition_name         = string<br/>      description                  = optional(string)<br/>      principal_type               = optional(string, "Group")<br/>      skip_service_principal_check = optional(bool, false)<br/>    })), {})<br/>  })</pre> | `{}` | no |
