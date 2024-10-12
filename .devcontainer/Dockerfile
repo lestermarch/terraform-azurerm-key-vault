@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Set tooling versions
 ENV FONT_NAME=CascadiaCode
-ENV FONT_VERSION=2111.01
+ENV FONT_VERSION=3.2.1
 ENV GITHUB_CLI_VERSION=2.58.0
 ENV TERRAFORM_DOCS_VERSION=0.19.0
 ENV TERRAFORM_VERSION=1.9.7
@@ -22,8 +22,8 @@ RUN apt-get update && apt-get install -y \
   wget \
   unzip
 
-# Install a Nerd Font (Fira Code as an example)
-RUN wget https://github.com/microsoft/cascadia-code/releases/download/v${FONT_VERSION}/${FONT_NAME}-${FONT_VERSION}.zip -O ${FONT_NAME}.zip \
+# Install a Nerd Font
+RUN wget https://github.com/microsoft/cascadia-code/releases/download/v${FONT_VERSION}/${FONT_NAME}.zip -O ${FONT_NAME}.zip \
   && unzip ${FONT_NAME}.zip -d /usr/share/fonts \
   && rm ${FONT_NAME}.zip \
   && fc-cache -f -v
