@@ -136,6 +136,34 @@ variable "resource_tags" {
   type        = map(string)
 }
 
+variable "role_assignments" {
+  default     = {}
+  description = <<-EOT
+  An object used to define role assignments for resources, in the format:
+  ```
+  {
+    key_vault = {
+      service_principal_key_vault_administrator = {
+        principal_id                 = "0000000000-0000-0000-0000-000000000001"
+        principal_type               = "ServicePrincipal"
+        role_definition_name         = "Key Vault Administrator"
+        skip_service_principal_check = true
+      }
+    }
+  }
+  ```
+  EOT
+  type = object({
+    key_vault = optional(map(object({
+      principal_id                 = string
+      role_definition_name         = string
+      description                  = optional(string)
+      principal_type               = optional(string, "Group")
+      skip_service_principal_check = optional(bool, false)
+    })), {})
+  })
+}
+
 variable "sku" {
   default     = "Standard"
   description = "The key vault SKU to provision."
