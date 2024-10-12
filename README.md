@@ -1,235 +1,44 @@
 # Azure Key Vault
 
-This module provisions an Azure Key Vault with options for configuring private endpoints, diagnostic logging, role-based access control (RBAC) assignments, and Azure Monitor alerts at deployment time.
+This module provisions an [Azure Key Vault](https://learn.microsoft.com/en-us/azure/key-vault/general/overview) with options for configuring [private endpoints](https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview), [diagnostic logging](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/diagnostic-settings), [role-based access control (RBAC) assignments](https://learn.microsoft.com/en-us/azure/role-based-access-control/overview), and [Azure Monitor alerts](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-overview) at deployment time.
 
 ## Design Decisions
 
 ### Access Model
 
-Key vault support two methods of data-plane access control assignment:
+This module exclusively supports Azure RBAC for access control. Access policies are not supported in this module. This approach provides:
 
-- Access policies offer fine-grained control of the key vault data-plane by directly assigning an Entra ID principal to specific operations on certificates, keys, secrets, and storage within the vault.
-- Azure RBAC offers centralized control and governance over access to to the key vault data-plane by abstracting data-plane access to Entra ID roles. Principals are assigned to one or more Entra ID roles specific to key vault, which grants a set of predefined operational permissions.
+- Centralized governance over access.
+- Simplified role assignment via Entra ID roles.
+- Enhanced insights into role assignments.
 
-This module supports only the Azure RBAC access model to enforce enhanced insight and governance of role assignments. Azure RBAC assignments can be configured when calling the module through the `role_assignments` variable. No interface is provided for configuring access through access policies.
+Roles can be assigned through the `role_assignment` variable. See [usage examples](#example-usage) for configuration guidance.
 
 ### Network Security
 
-Key vault is a PaaS resource which supports both public and private endpoints. Public endpoints may be configured with an IP address allow list (firewall), and/or a subnet allow list (service endpoints).
+This module disables public access by default. This approach provides:
 
-This module sets the default public endpoint action to `Deny`. This means, to access the key vault data plane, one of two access modes must be configured:
+- Enhanced security by requiring explicit configuration for the desired network access method.
 
-- The public endpoint may be configured to allow access to [specific IP addresses](#enable-public-endpoint-with-firewall), [specific subnets](#enable-public-endpoint-with-service-endpoints), or [opened completely](#enable-public-endpoint-without-restriction).
-- A [private endpoint may be provisioned](#provision-a-private-endpoint) to allow access through a virtual network subnet.
+Public and private access can be configured through the `network_access` and `private_endpoint` variables. See the [usage examples](#example-usage) for configuration guidance.
 
 ### Recovery
 
-Key vault supports recovery of data-plane objects, as well as the key vault itself through two methods:
+This module enforces the purge protection and soft-delete features. This approach provides:
 
-- Purge protection allows the key vault to be recovered in the case of accidental deletion for a defined period of time.
-- Soft delete allows internal key vault resources to be recovered in the case of accidental deletion for a defined period of time.
+- Ability to recover deleted objects or vaults within a given time period.
 
-This module forces the enablement of purge protection and provides no interface for disabling this configuration. In addition, soft-delete is enforced at the minimum retention period of 7 days. An interface is provided to configure this between 7 and 90 days.
+The retention period can be adjusted through the `delete_retention_days` variable.
 
 ## Example Usage
 
-This section provides some examples of customizing the default module configuration.
+The below links provide documentation on example usage for features specific to this module
 
-### Alerts
-
-A set of default alerts are built-in to this module with recommended defaults in terms of severity and alert threshold. However, to enable alerts an action group ID must be provided either globally through the `action_group_id` variable, or on individual alerts for selective enablement.
-
-#### Enable All Alerts
-
-```hcl
-module "key_vault" {
-  source  = "lestermarch/key-vault/azurerm"
-  version = "1.0.0"
-
-  location            = "uksouth"
-  resource_group_name = "rg-example"
-
-  alert = {
-    action_group_id = "/subscriptions/.../resourceGroups/rg-example/providers/Microsoft.Insights/actionGroups/ag-example"
-  }
-}
-```
-
-#### Customize Alert Parameters
-
-```hcl
-module "key_vault" {
-  source  = "lestermarch/key-vault/azurerm"
-  version = "1.0.0"
-
-  location            = "uksouth"
-  resource_group_name = "rg-example"
-
-  alert = {
-    action_group_id = "/subscriptions/.../resourceGroups/rg-example/providers/Microsoft.Insights/actionGroups/ag-example"
-    key_vault = {
-      availability = {
-        severity  = 3
-        threshold = 80
-      }
-    }
-  }
-}
-```
-
-### Diagnostic Logging
-
-Diagnostic logging is supported using Log Analytics as the target log store.
-
-#### Enable Diagnostics to Log Analytics
-
-```hcl
-module "key_vault" {
-  source  = "lestermarch/key-vault/azurerm"
-  version = "2024-10-12"
-
-  location            = "uksouth"
-  resource_group_name = "rg-example"
-
-  diagnostics = {
-    key_vault = {
-      default = {
-        log_analytics_workspace_id = "/subscriptions/.../providers/Microsoft.OperationalInsights/workspaces/log-example"
-      }
-    }
-  }
-}
-```
-
-### Public Access
-
-To access the Key Vault data plane over public endpoint the `enable_public_access` should be changed to `true`. However, in this configuration it is highly recommended to also use the public endpoint firewall or service endpoints to restrict access to trusted sources only. These can be enabled through the `network_access` variable.
-
-#### Enable Public Endpoint with Firewall
-
-```hcl
-module "key_vault" {
-  source  = "lestermarch/key-vault/azurerm"
-  version = "2024-10-12"
-
-  location            = "uksouth"
-  resource_group_name = "rg-example"
-
-  enable_public_access = true
-  network_access = {
-    ip_rules = [
-      "80.170.100.82/32",
-      "80.170.101.0/24"
-    ]
-  }
-}
-```
-
-#### Enable Public Endpoint with Service Endpoints
-
-```hcl
-module "key_vault" {
-  source  = "lestermarch/key-vault/azurerm"
-  version = "2024-10-12"
-
-  location            = "uksouth"
-  resource_group_name = "rg-example"
-
-  enable_public_access = true
-  network_access = {
-    virtual_network_subnet_ids = [
-      "/subscriptions/.../providers/Microsoft.Network/virtualNetworks/vnet-example/subnets/ExampleSubnet"
-    ]
-  }
-}
-```
-
-> [!Note]
-> In this scenario the `ExampleSubnet` would need to be configured with a service endpoint for `Microsoft.KeyVault`.
-
-#### Enable Public Endpoint without Restriction
-
-```hcl
-module "key_vault" {
-  source  = "lestermarch/key-vault/azurerm"
-  version = "1.0.0"
-
-  location            = "uksouth"
-  resource_group_name = "rg-example"
-
-  enable_public_access = true
-  network_access = {
-    default_action = "Allow"
-  }
-}
-```
-
-> [!Warning]
-> While still protected through identity, enabling public access without restriction is not a recommended configuration.
-
-### Private Access
-
-To access the Key Vault data plane over private endpoint, the `private_endpoints` variable can be configured to provision a private endpoint to a specific subnet and register to an existing Azure Private DNS Zone. The public endpoint for the resource is disabled by default.
-
-#### Provision a Private Endpoint
-
-```hcl
-module "key_vault" {
-  source  = "lestermarch/key-vault/azurerm"
-  version = "1.0.0"
-
-  location            = "uksouth"
-  resource_group_name = "rg-example"
-
-  private_endpoints = {
-    key_vault = {
-      vault = {
-        private_dns_zone_ids = ["/subscriptions/.../providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.net"]
-        subnet_id            = "/subscriptions/.../providers/Microsoft.Network/virtualNetworks/vnet-example/subnets/ExampleSubnet"
-        subresource_names    = ["vault"]
-      }
-    }
-  }
-}
-```
-
-### Role Assignments
-
-To provide role-based access to the Key Vault control and data planes, the `role_assignments` variable can be configured with one or more role assignments linking an Entra ID group (default), user, or service principal to a particular role.
-
-#### Grant Access to Multiple Identities
-
-```hcl
-module "key_vault" {
-  source  = "lestermarch/key-vault/azurerm"
-  version = "1.0.0"
-
-  location            = "uksouth"
-  resource_group_name = "rg-example"
-
-  role_assignments = {
-    key_vault = {
-      example_group_key_vault_secrets_officer = {
-        description          = "Example group role assignment"
-        principal_id         = "00000000-0000-0000-0000-000000000001"
-        role_definition_name = "Key Vault Secrets Officer"
-      }
-      example_user_key_vault_administrator = {
-        description          = "Example user role assignment"
-        principal_id         = "00000000-0000-0000-0000-000000000001"
-        principal_type       = "User"
-        role_definition_name = "Key Vault Administrator"
-      }
-      example_service_principal_key_vault_secrets_user = {
-        description          = "Example service principal role assignment"
-        principal_id         = "00000000-0000-0000-0000-000000000002"
-        principal_type       = "ServicePrincipal"
-        role_definition_name = "Key Vault Secrets User"
-      }
-    }
-  }
-}
-```
+- [Enabling and Configuring Azure Monitor Alerts](docs/example-usage-alerts.md)
+- [Enabling and Configuring Diagnostic Settings](docs/example-usage-diagnostics.md)
+- [Enabling and Configuring Public Network Access](docs/example-usage-public-access.md)
+- [Enabling and Configuring Private Network Access](docs/example-usage-private-access.md)
+- [Enabling and Configuring Role Assignments](docs/example-usage-rbac.md)
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
