@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y \
   unzip
 
 # Install a Nerd Font
-RUN wget https://github.com/microsoft/cascadia-code/releases/download/v${FONT_VERSION}/${FONT_NAME}.zip -O ${FONT_NAME}.zip \
+RUN wget https://github.com/ryanoasis/nerd-fonts/releases/download/v${FONT_VERSION}/${FONT_NAME}.zip -O ${FONT_NAME}.zip \
   && unzip ${FONT_NAME}.zip -d /usr/share/fonts \
   && rm ${FONT_NAME}.zip \
   && fc-cache -f -v
