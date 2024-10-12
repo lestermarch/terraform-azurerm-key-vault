@@ -125,6 +125,70 @@ module "key_vault" {
 > [!Warning]
 > While still protected through identity, enabling public access without restriction is not a recommended configuration.
 
+### Private Access
+
+To access the Key Vault data plane over private endpoint, the `private_endpoints` variable can be configured to provision a private endpoint to a specific subnet and register to an existing Azure Private DNS Zone. The public endpoint for the resource is disabled by default.
+
+#### Provision a Private Endpoint
+
+```hcl
+module "key_vault" {
+  source  = "AscentSoftware/key-vault/azurerm"
+  version = "1.0.0"
+
+  location            = "uksouth"
+  resource_group_name = "rg-example"
+
+  private_endpoints = {
+    key_vault = {
+      vault = {
+        private_dns_zone_ids = ["/subscriptions/.../providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.net"]
+        subnet_id            = "/subscriptions/.../providers/Microsoft.Network/virtualNetworks/vnet-example/subnets/ExampleSubnet"
+        subresource_names    = ["vault"]
+      }
+    }
+  }
+}
+```
+
+### Role Assignments
+
+To provide role-based access to the Key Vault control and data planes, the `role_assignments` variable can be configured with one or more role assignments linking an Entra ID group (default), user, or service principal to a particular role.
+
+#### Grant Access to Multiple Identities
+
+```hcl
+module "key_vault" {
+  source  = "AscentSoftware/key-vault/azurerm"
+  version = "1.0.0"
+
+  location            = "uksouth"
+  resource_group_name = "rg-example"
+
+  role_assignments = {
+    key_vault = {
+      example_group_key_vault_secrets_officer = {
+        description          = "Example group role assignment"
+        principal_id         = "00000000-0000-0000-0000-000000000001"
+        role_definition_name = "Key Vault Secrets Officer"
+      }
+      example_user_key_vault_administrator = {
+        description          = "Example user role assignment"
+        principal_id         = "00000000-0000-0000-0000-000000000001"
+        principal_type       = "User"
+        role_definition_name = "Key Vault Administrator"
+      }
+      example_service_principal_key_vault_secrets_user = {
+        description          = "Example service principal role assignment"
+        principal_id         = "00000000-0000-0000-0000-000000000002"
+        principal_type       = "ServicePrincipal"
+        role_definition_name = "Key Vault Secrets User"
+      }
+    }
+  }
+}
+```
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
