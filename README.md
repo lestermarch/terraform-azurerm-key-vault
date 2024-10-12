@@ -35,6 +35,30 @@ This module forces the enablement of purge protection and provides no interface 
 
 This section provides some examples of customizing the default module configuration.
 
+### Diagnostic Logging
+
+Diagnostic logging is supported using Log Analytics as the target log store.
+
+#### Enable Diagnostics to Log Analytics
+
+```hcl
+module "key_vault" {
+  source  = "lestermarch/key-vault/azurerm"
+  version = "2024-10-12"
+
+  location            = "uksouth"
+  resource_group_name = "rg-example"
+
+  diagnostics = {
+    key_vault = {
+      default = {
+        log_analytics_workspace_id = "/subscriptions/.../providers/Microsoft.OperationalInsights/workspaces/log-example"
+      }
+    }
+  }
+}
+```
+
 ### Public Access
 
 To access the Key Vault data plane over public endpoint the `enable_public_access` should be changed to `true`. However, in this configuration it is highly recommended to also use the public endpoint firewall or service endpoints to restrict access to trusted sources only. These can be enabled through the `network_access` variable.
@@ -78,6 +102,29 @@ module "key_vault" {
 }
 ```
 
+> [!Note]
+> In this scenario the `ExampleSubnet` would need to be configured with a service endpoint for `Microsoft.KeyVault`.
+
+#### Enable Public Endpoint without Restriction
+
+```hcl
+module "key_vault" {
+  source  = "AscentSoftware/key-vault/azurerm"
+  version = "1.0.0"
+
+  location            = "uksouth"
+  resource_group_name = "rg-example"
+
+  enable_public_access = true
+  network_access = {
+    default_action = "Allow"
+  }
+}
+```
+
+> [!Warning]
+> While still protected through identity, enabling public access without restriction is not a recommended configuration.
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -103,6 +150,7 @@ No modules.
 | Name | Type |
 |------|------|
 | [azurerm_key_vault.main](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault) | resource |
+| [azurerm_monitor_diagnostic_setting.key_vault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) | resource |
 | [random_integer.resource_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) | resource |
 | [random_pet.resource_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/pet) | resource |
 
@@ -113,6 +161,7 @@ No modules.
 | <a name="input_location"></a> [location](#input\_location) | The region into which resources will be deployed. | `string` | n/a | yes |
 | <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name) | The resource group into which resources will be deployed. | `string` | n/a | yes |
 | <a name="input_delete_retention_days"></a> [delete\_retention\_days](#input\_delete\_retention\_days) | The number of days to retain soft-deleted keys, secrets, and certificates. | `number` | `7` | no |
+| <a name="input_diagnostics"></a> [diagnostics](#input\_diagnostics) | An object used to define diagnostic settings for resources, in the format:<pre>{<br/>  key_vault = {<br/>    default = {<br/>      log_analytics_workspace_id     = "/subscriptions/.../providers/Microsoft.OperationalInsights/workspaces/log-example"<br/>      log_analytics_destination_type = "AzureDiagnostics"<br/>      log_categories                 = ["AuditEvent"]<br/>    }<br/>  }<br/>}</pre> | <pre>object({<br/>    key_vault = optional(map(object({<br/>      log_analytics_workspace_id     = string<br/>      log_analytics_destination_type = optional(string, "AzureDiagnostics")<br/>      log_categories                 = optional(list(string), ["AuditEvent"])<br/>      metric_categories              = optional(list(string), ["AllMetrics"])<br/>    })), {})<br/>  })</pre> | `{}` | no |
 | <a name="input_enable_for_deployment"></a> [enable\_for\_deployment](#input\_enable\_for\_deployment) | Determines if virtual machines can retrieve secrets from the key vault during deployment. | `bool` | `false` | no |
 | <a name="input_enable_for_disk_encryption"></a> [enable\_for\_disk\_encryption](#input\_enable\_for\_disk\_encryption) | Determines if the Azure disk encryption service can retrieve secrets from the key vault. | `bool` | `false` | no |
 | <a name="input_enable_for_template_deployment"></a> [enable\_for\_template\_deployment](#input\_enable\_for\_template\_deployment) | Determines if Azure Resource Manager can retrieve secrets from the key vault during template deployment. | `bool` | `false` | no |

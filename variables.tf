@@ -9,6 +9,32 @@ variable "delete_retention_days" {
   }
 }
 
+variable "diagnostics" {
+  default     = {}
+  description = <<-EOT
+  An object used to define diagnostic settings for resources, in the format:
+  ```
+  {
+    key_vault = {
+      default = {
+        log_analytics_workspace_id     = "/subscriptions/.../providers/Microsoft.OperationalInsights/workspaces/log-example"
+        log_analytics_destination_type = "AzureDiagnostics"
+        log_categories                 = ["AuditEvent"]
+      }
+    }
+  }
+  ```
+  EOT
+  type = object({
+    key_vault = optional(map(object({
+      log_analytics_workspace_id     = string
+      log_analytics_destination_type = optional(string, "AzureDiagnostics")
+      log_categories                 = optional(list(string), ["AuditEvent"])
+      metric_categories              = optional(list(string), ["AllMetrics"])
+    })), {})
+  })
+}
+
 variable "enable_for_deployment" {
   default     = false
   description = "Determines if virtual machines can retrieve secrets from the key vault during deployment."
