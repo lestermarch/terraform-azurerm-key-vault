@@ -4,6 +4,14 @@ FROM mcr.microsoft.com/azure-powershell:ubuntu-22.04
 # Silence some warnings and set the non-interactive mode for apt-get
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Set tooling versions
+ENV FONT_NAME=CascadiaCode
+ENV FONT_VERSION=2111.01
+ARG GITHUB_CLI_VERSION=2.58.0
+ENV TERRAFORM_DOCS_VERSION=0.19.0
+ENV TERRAFORM_VERSION=1.9.7
+ENV TFLINT_VERSION=0.53.0
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
   curl \
@@ -15,8 +23,6 @@ RUN apt-get update && apt-get install -y \
   unzip
 
 # Install a Nerd Font (Fira Code as an example)
-ENV FONT_NAME=CascadiaCode
-ENV FONT_VERSION=2111.01
 RUN wget https://github.com/microsoft/cascadia-code/releases/download/v${FONT_VERSION}/${FONT_NAME}-${FONT_VERSION}.zip -O ${FONT_NAME}.zip \
   && unzip ${FONT_NAME}.zip -d /usr/share/fonts \
   && rm ${FONT_NAME}.zip \
@@ -27,7 +33,6 @@ RUN bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/
     && sed -i 's/OSH_THEME="font"/OSH_THEME="rr"/g' ~/.bashrc
 
 # Install Terraform
-ENV TERRAFORM_VERSION=1.7.4
 RUN wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -O terraform.zip \
     && unzip terraform.zip -d /usr/local/bin \
     && chmod +x /usr/local/bin/terraform \
@@ -35,13 +40,11 @@ RUN wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform
     && terraform --version
 
 # Install TFLint
-ENV TFLINT_VERSION=0.50.3
 RUN curl -sL https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/tflint_linux_amd64.zip -o tflint.zip \
     && unzip tflint.zip -d /usr/bin \
     && rm tflint.zip
 
 # Install terraform-docs
-ENV TERRAFORM_DOCS_VERSION=0.17.0
 RUN curl -sL https://github.com/terraform-docs/terraform-docs/releases/download/v${TERRAFORM_DOCS_VERSION}/terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-amd64.tar.gz | tar -xz -C /usr/bin
 
 # Install Checkov
@@ -54,7 +57,6 @@ RUN pip install pre-commit
 RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
 # Install GitHub CLI
-ARG GITHUB_CLI_VERSION="2.44.1"
 RUN wget https://github.com/cli/cli/releases/download/v${GITHUB_CLI_VERSION}/gh_${GITHUB_CLI_VERSION}_linux_amd64.tar.gz && \
     tar xvf gh_${GITHUB_CLI_VERSION}_linux_amd64.tar.gz && \
     cp gh_${GITHUB_CLI_VERSION}_linux_amd64/bin/gh /usr/local/bin/ && \
