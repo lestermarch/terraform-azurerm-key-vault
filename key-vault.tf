@@ -1,4 +1,5 @@
 resource "azurerm_key_vault" "main" {
+  #checkov:skip=CKV2_AZURE_32: [TODO] Support private endpoints
   name                = local.resource_name.key_vault
   location            = var.location
   resource_group_name = var.resource_group_name
