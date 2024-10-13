@@ -31,13 +31,19 @@ This module uses the native [Terraform test](https://developer.hashicorp.com/ter
 
 Unit tests are based on the output of `terraform plan` using mock resources and data sources for dependencies. All unit tests are contained in the [tests/unit](/tests/unit/) directory and can be run with the following command from the root of the repository:
 
+> [!Note]
+> Before running integration tests for the first time, you will need to initialize the test directory using the below command:
+>
+> ```bash
+> terraform init -test-directory=tests/integration
+> ```
+
 ```bash
+# Run unit tests
 terraform test -test-directory=tests/unit
-```
 
-Integration tests are based on the deployment of real resources (`terraform apply`). All integration tests are contained in the [tests/integration](/tests/integration/) directory and can be run with the following command from the root of the repository:
-
-```bash
+# Run integration tests
+ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000" # Your Azure subscription ID
 terraform test -test-directory=tests/integration
 ```
 
