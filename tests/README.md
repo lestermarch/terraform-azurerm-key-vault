@@ -14,6 +14,7 @@ This directory contains subdirectories for unit and integration tests. To run te
 terraform test -test-directory=tests/unit
 
 # Run integration tests
+ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000" # Your Azure subscription ID
 terraform test -test-directory=tests/integration
 ```
 

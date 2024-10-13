@@ -25,6 +25,28 @@ After initializing Pre-Commit from the root of the repository (`pre-commit insta
 > - [tflint.hcl](/.config/tflint.hcl)
 > - [pre-commit-config.yaml](/.pre-commit-config.yaml)
 
+## Testing
+
+This module uses the native [Terraform test](https://developer.hashicorp.com/terraform/language/tests) framework. Before [submitting changes](#submitting-changes), please run _unit tests_ and _integration tests_ as described below, updating or adding tests as necessary.
+
+Unit tests are based on the output of `terraform plan` using mock resources and data sources for dependencies. All unit tests are contained in the [tests/unit](/tests/unit/) directory and can be run with the following command from the root of the repository:
+
+```bash
+terraform test -test-directory=tests/unit
+```
+
+Integration tests are based on the deployment of real resources (`terraform apply`). All integration tests are contained in the [tests/integration](/tests/integration/) directory and can be run with the following command from the root of the repository:
+
+```bash
+terraform test -test-directory=tests/integration
+```
+
+> [!Warning]
+> Running integration tests will deploy resources to your current Azure subscription context and may incur a cost. Before running integration tests, ensure you are logged into Azure using the Azure CLI and verify your subscription context is appropriate for deploying test resources:
+>
+> - View your current subscription context: `az account show`
+> - Change your subscription context: `az account set -s <subscriptionId>`
+
 ## Requesting and Submitting Changes
 
 This module uses [GitHub Issues](https://docs.github.com/en/issues/tracking-your-work-with-issues/about-issues) to track feature requests and bugs. Ideally, an issue should be raised for any module improvements (features), or fixes before raising submitting changes.
