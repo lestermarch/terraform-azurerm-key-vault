@@ -2,6 +2,13 @@
 
 This directory contains subdirectories for unit and integration tests. To run tests, run the `terraform test` command from the root of the repository, scoped to the appropriate directory:
 
+> [!Note]
+> Before running integration tests for the first time, you will need to initialize the test directory using the below command:
+>
+> ```bash
+> terraform init -test-directory=unit/integration
+> ```
+
 ```bash
 # Run unit tests
 terraform test -test-directory=tests/unit
