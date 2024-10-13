@@ -4,7 +4,7 @@ resource "azurerm_monitor_activity_log_alert" "key_vault_deleted" {
   count = local.alert.key_vault.deleted.deploy ? 1 : 0
 
   name                = local.alert.key_vault.deleted.alert_name
-  location            = var.location
+  location            = "global"
   resource_group_name = local.alert.key_vault.deleted.resource_group_name
   tags                = var.resource_tags
 
