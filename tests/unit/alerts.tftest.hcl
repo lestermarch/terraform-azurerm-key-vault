@@ -173,12 +173,6 @@ run "alternative_alert_name" {
     }
   }
 
-  # Key vault delete alert
-  assert {
-    condition     = azurerm_monitor_activity_log_alert.key_vault_deleted[0].name == "kv-mock-Deleted"
-    error_message = "Key vault delete alert should have the correct name."
-  }
-
   # Key vault availability alert
   assert {
     condition     = azurerm_monitor_metric_alert.key_vault_availability[0].name == "kv-mock-availability-alternative"

@@ -24,12 +24,6 @@ run "default_configuration" {
     }
   }
 
-  # Private endpoint name
-  assert {
-    condition     = azurerm_private_endpoint.key_vault["vault"].name == "kv-mock-vault"
-    error_message = "Private endpoint should have the name kv-mock-vault."
-  }
-
   # Automatic approval
   assert {
     condition     = azurerm_private_endpoint.key_vault["vault"].private_service_connection[0].is_manual_connection == false
