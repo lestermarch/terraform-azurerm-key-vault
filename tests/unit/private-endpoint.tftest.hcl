@@ -5,7 +5,7 @@ mock_provider "azurerm" {
 variables {
   location            = "uksouth"
   resource_group_name = "rg-mock"
-  resource_names      = {
+  resource_name       = {
     key_vault = "kv-mock"
   }
 }
@@ -22,6 +22,12 @@ run "default_configuration" {
         }
       }
     }
+  }
+
+  # Private endpoint name
+  assert {
+    condition     = azurerm_private_endpoint.key_vault["vault"].name == "kv-mock-pe-vault"
+    error_message = "Private endpoint should have the name kv-mock-vault."
   }
 
   # Automatic approval

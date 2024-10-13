@@ -5,7 +5,7 @@ mock_provider "azurerm" {
 variables {
   location            = "uksouth"
   resource_group_name = "rg-mock"
-  resource_names      = {
+  resource_name       = {
     key_vault = "kv-mock"
   }
 }
@@ -171,6 +171,12 @@ run "alternative_alert_name" {
         }
       }
     }
+  }
+
+  # Key vault delete alert
+  assert {
+    condition     = azurerm_monitor_activity_log_alert.key_vault_deleted[0].name == "kv-mock-Deleted"
+    error_message = "Key vault delete alert should have the correct name."
   }
 
   # Key vault availability alert
