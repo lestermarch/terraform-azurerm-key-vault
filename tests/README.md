@@ -6,7 +6,7 @@ This directory contains subdirectories for unit and integration tests. To run te
 > Before running integration tests for the first time, you will need to initialize the test directory using the below command:
 >
 > ```bash
-> terraform init -test-directory=unit/integration
+> terraform init -test-directory=tests/integration
 > ```
 
 ```bash
